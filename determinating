@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+double calculate_det(double **matrix, int n);
+void input(double ***matrix, int *n);
+void output(double det);
+
+int main()
+{
+    int n;
+    double **matrix;
+    double determinant;
+
+    input(&matrix, &n);
+    determinant = calculate_det(matrix, n);
+
+    if (isnan(determinant)) {
+        printf("n/a\n");
+    } else {
+        output(determinant);
+    }
+
+    // Освобождение памяти
+    for (int i = 0; i < n; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
+
+    return 0;
+}
+
+double calculate_det(double **matrix, int n)
+{
+    double determinant = 0;
+    int i, j;
+    double **temp;
+
+    if (n == 1) {
+        return matrix[0][0];
+    } else if (n == 2) {
+        return (matrix[0][0] * matrix[1][1]) - (matrix[0][1] * matrix[1][0]);
+    } else {
+        determinant = 0;
+        temp = (double **)malloc((n - 1) * sizeof(double *));
+        for (i = 0; i < n - 1; i++) {
+            temp[i] = (double *)malloc((n - 1) * sizeof(double));
+        }
+
+        for (i = 0; i < n; i++) {
+            int sign = (i % 2 == 0) ? 1 : -1;
+            for (j = 1; j < n; j++) {
+                int temp_col = 0;
+                for (int k = 0; k < n; k++) {
+                    if (k != i) {
+                        temp[j - 1][temp_col] = matrix[j][k];
+                        temp_col++;
+                    }
+                }
+            }
+            determinant += sign * matrix[0][i] * calculate_det(temp, n - 1);
+        }
+
+        for (i = 0; i < n - 1; i++) {
+            free(temp[i]);
+        }
+        free(temp);
+    }
+
+    return determinant;
+}
+
+void input(double ***matrix, int *n)
+{
+    int i, j;
+
+    printf("Введите размер квадратной матрицы: ");
+    scanf("%d", n);
+
+    *matrix = (double **)malloc(*n * sizeof(double *));
+    for (i = 0; i < *n; i++) {
+        (*matrix)[i] = (double *)malloc(*n * sizeof(double));
+        printf("Введите элементы для строки %d: ", i + 1);
+        for (j = 0; j < *n; j++) {
+            scanf("%lf", &((*matrix)[i][j]));
+        }
+    }
+}
+
+void output(double det)
+{
+    printf("Определитель: %.6f\n", det);
+}
